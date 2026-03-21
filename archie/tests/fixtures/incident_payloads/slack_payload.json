@@ -1,0 +1,10 @@
+{
+  "type": "event_callback",
+  "event": {
+    "type": "message",
+    "text": "Production alert: payment processing failing with NoneType error",
+    "user": "U123456",
+    "ts": "1710844200.000000",
+    "channel": "C123456"
+  }
+}

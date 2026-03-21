@@ -1,0 +1,27 @@
+{
+  "id": "12345",
+  "project": "payment-service",
+  "message": "AttributeError: 'NoneType' object has no attribute 'token'",
+  "culprit": "payment.process_payment",
+  "level": "error",
+  "platform": "python",
+  "timestamp": "2026-03-19T10:30:00Z",
+  "exception": {
+    "values": [
+      {
+        "type": "AttributeError",
+        "value": "'NoneType' object has no attribute 'token'",
+        "stacktrace": {
+          "frames": [
+            {
+              "filename": "payment.py",
+              "function": "process_payment",
+              "lineno": 16,
+              "context_line": "return self._charge(card.token, amount)"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

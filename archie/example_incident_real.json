@@ -1,0 +1,34 @@
+{
+  "source": "manual",
+  "title": "INC-207: No images in test report for thread yCmxs",
+  "error_message": "Report for thread yCmxs shows no images. test_logs array truncated to steps 0-2, missing 151 steps including healing screenshots.",
+  "severity": "minor",
+  "timestamp": "2026-03-18T09:57:39Z",
+  "environment": "production",
+  "affected_service": "Reporting / Report Frontend",
+  "details": {
+    "thread_code": "yCmxs",
+    "app": "com.aranoah.healthkart",
+    "platform": "iOS BrowserStack",
+    "test_start": "2026-03-17T18:20:53Z",
+    "failed_at_step": 19,
+    "root_cause_step": 18,
+    "total_steps": 154,
+    "test_logs_count": 3,
+    "healing_screenshots": 20,
+    "affected_files": [
+      "reporting/html_report.py",
+      "app/services/report.py",
+      "app/utils/report.py",
+      "app/api/v1/endpoints/report.py"
+    ],
+    "stack_trace": "test_logs array contains only steps 0-2; steps 3-154 absent from report JSON. Healing screenshots in healing.screens not rendered by UI.",
+    "root_cause_analysis": "Step 18 LLM tapped container cell (element 8) instead of text input, navigating to wrong screen. No command_verifier to catch error. Step 19 failed (UNDOABLE). Healing session EXEC_FAILED. Report generation pipeline truncated test_logs.",
+    "suggested_fixes": [
+      "Fix test_logs truncation in report generation pipeline",
+      "Surface healing screenshots in report UI",
+      "Add command_verifier to search field tap steps",
+      "Improve LLM element selection for search fields"
+    ]
+  }
+}

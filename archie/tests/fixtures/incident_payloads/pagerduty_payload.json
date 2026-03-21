@@ -1,0 +1,20 @@
+{
+  "messages": [
+    {
+      "id": "pd-incident-123",
+      "event": "incident.trigger",
+      "incident": {
+        "id": "PINCIDENT123",
+        "incident_number": 456,
+        "title": "High error rate on payment-service",
+        "status": "triggered",
+        "service": {
+          "name": "payment-service",
+          "id": "PSERVICE123"
+        },
+        "created_at": "2026-03-19T10:30:00Z",
+        "urgency": "high"
+      }
+    }
+  ]
+}
