@@ -74,19 +74,35 @@ class CodeIndexer:
         
         logger.info(f"Found {len(files_to_index)} files to index")
         
-        # Index each file (fully async)
-        for file_path in files_to_index:
-            try:
-                # Force update during full index
-                await self.update_file(str(file_path), force=True)
-            except Exception as e:
-                logger.error(f"Error indexing {file_path}: {e}")
+        # PARALLEL PROCESSING - Process 10 files at once
+        batch_size = 10
+        total_files = len(files_to_index)
+        
+        for i in range(0, total_files, batch_size):
+            batch = files_to_index[i:i+batch_size]
+            
+            # Process batch in parallel
+            tasks = []
+            for file_path in batch:
+                tasks.append(self.update_file(str(file_path), force=True))
+            
+            # Wait for all files in batch to complete
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            # Log errors
+            for file_path, result in zip(batch, results):
+                if isinstance(result, Exception):
+                    logger.error(f"Error indexing {file_path}: {result}")
+            
+            # Progress logging
+            progress = min(i + batch_size, total_files)
+            percent = (progress * 100) // total_files
+            logger.info(f"📊 Progress: {progress}/{total_files} files ({percent}%)")
         
         self.last_indexed = datetime.now()
         
         # Persist graph if path provided
         if self.graph_path:
-            import asyncio
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(None, self.graph.save, self.graph_path)
         

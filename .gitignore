@@ -57,3 +57,5 @@ htmlcov/
 
 # Git
 .git/
+
+docs/

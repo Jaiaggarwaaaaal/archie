@@ -13,6 +13,7 @@ from archie.incident.listener import IncidentParser
 from archie.incident.investigator import IncidentInvestigator
 from archie.incident.fix_generator import FixGenerator
 from archie.incident.pr_creator import PRCreator
+from archie.api.graph_3d_route import get_3d_graph_html
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -408,6 +409,15 @@ async def get_hotspots(top_n: int = 10) -> Dict[str, Any]:
 
 
 
+@router.get("/graph/ui", response_class=HTMLResponse)
+async def graph_ui():
+    """Proper graph UI with sidebar and controls."""
+    from pathlib import Path
+    html_path = Path(__file__).parent.parent / "static" / "graph.html"
+    with open(html_path, 'r') as f:
+        return f.read()
+
+
 @router.get("/graph/3d", response_class=HTMLResponse)
 async def view_3d_graph(max_nodes: int = 200, file_filter: Optional[str] = None):
     """View interactive 3D graph visualization.
@@ -439,6 +449,239 @@ async def view_3d_graph(max_nodes: int = 200, file_filter: Optional[str] = None)
     
     import json
     graph_json = json.dumps(graph_data)
+    
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Archie Graph - Simple List View</title>
+        <style>
+            body {{
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                background: #0a0a0a;
+                color: #fff;
+            }}
+            .container {{
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 20px;
+            }}
+            h1 {{
+                color: #4fc3f7;
+                margin-bottom: 10px;
+            }}
+            .stats {{
+                background: rgba(0, 0, 0, 0.8);
+                padding: 20px;
+                border-radius: 10px;
+                margin: 20px 0;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }}
+            .stats-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+                margin-top: 15px;
+            }}
+            .stat-item {{
+                background: #1a1a1a;
+                padding: 15px;
+                border-radius: 8px;
+                border-left: 4px solid #4fc3f7;
+            }}
+            .stat-value {{
+                font-size: 32px;
+                font-weight: bold;
+                color: #4fc3f7;
+            }}
+            .stat-label {{
+                font-size: 14px;
+                color: #888;
+                margin-top: 5px;
+            }}
+            .node-list {{
+                background: rgba(0, 0, 0, 0.8);
+                padding: 20px;
+                border-radius: 10px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }}
+            .filter-bar {{
+                margin: 20px 0;
+                display: flex;
+                gap: 10px;
+            }}
+            .filter-bar input {{
+                flex: 1;
+                padding: 10px;
+                background: #1a1a1a;
+                border: 1px solid #333;
+                border-radius: 5px;
+                color: #fff;
+                font-size: 14px;
+            }}
+            .filter-bar button {{
+                padding: 10px 20px;
+                background: #4fc3f7;
+                border: none;
+                border-radius: 5px;
+                color: #000;
+                font-weight: bold;
+                cursor: pointer;
+            }}
+            .filter-bar button:hover {{
+                background: #6fd4ff;
+            }}
+            .node-item {{
+                padding: 12px;
+                margin: 8px 0;
+                background: #1a1a1a;
+                border-radius: 6px;
+                border-left: 4px solid #4fc3f7;
+                transition: all 0.2s;
+            }}
+            .node-item:hover {{
+                background: #2a2a2a;
+                transform: translateX(5px);
+            }}
+            .node-item.function {{ border-left-color: #ffb74d; }}
+            .node-item.class {{ border-left-color: #ba68c8; }}
+            .node-type {{
+                display: inline-block;
+                padding: 3px 10px;
+                border-radius: 4px;
+                font-size: 11px;
+                font-weight: bold;
+                margin-right: 10px;
+                text-transform: uppercase;
+            }}
+            .type-file {{ background: #4fc3f7; color: #000; }}
+            .type-function {{ background: #ffb74d; color: #000; }}
+            .type-class {{ background: #ba68c8; color: #000; }}
+            .type-unknown {{ background: #666; color: #fff; }}
+            .node-label {{
+                font-size: 16px;
+                font-weight: 600;
+                color: #fff;
+            }}
+            .node-path {{
+                font-size: 12px;
+                color: #888;
+                margin-top: 5px;
+            }}
+            .node-lines {{
+                font-size: 11px;
+                color: #666;
+                margin-top: 3px;
+            }}
+            .nodes-container {{
+                max-height: 600px;
+                overflow-y: auto;
+            }}
+            .nodes-container::-webkit-scrollbar {{
+                width: 10px;
+            }}
+            .nodes-container::-webkit-scrollbar-track {{
+                background: #1a1a1a;
+            }}
+            .nodes-container::-webkit-scrollbar-thumb {{
+                background: #4fc3f7;
+                border-radius: 5px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🤖 Archie Code Graph</h1>
+            <p style="color: #888;">Indexed codebase knowledge graph</p>
+            
+            <div class="stats">
+                <h2>📊 Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">{graph_data["stats"]["total_nodes"]}</div>
+                        <div class="stat-label">Total Nodes</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{graph_data["stats"]["total_edges"]}</div>
+                        <div class="stat-label">Total Edges</div>
+                    </div>
+                    <div class="stat-item" style="border-left-color: #4fc3f7;">
+                        <div class="stat-value" style="color: #4fc3f7;">{graph_data["stats"]["files"]}</div>
+                        <div class="stat-label">Files</div>
+                    </div>
+                    <div class="stat-item" style="border-left-color: #ffb74d;">
+                        <div class="stat-value" style="color: #ffb74d;">{graph_data["stats"]["functions"]}</div>
+                        <div class="stat-label">Functions</div>
+                    </div>
+                    <div class="stat-item" style="border-left-color: #ba68c8;">
+                        <div class="stat-value" style="color: #ba68c8;">{graph_data["stats"]["classes"]}</div>
+                        <div class="stat-label">Classes</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="node-list">
+                <h2>📦 Nodes (Showing {len(graph_data["nodes"])} of {graph_data["stats"]["total_nodes"]})</h2>
+                
+                <div class="filter-bar">
+                    <input type="text" id="searchInput" placeholder="Search nodes by name or path..." onkeyup="filterNodes()">
+                    <button onclick="clearFilter()">Clear</button>
+                </div>
+                
+                <div class="nodes-container" id="nodesContainer">
+                    <!-- Nodes will be inserted here -->
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            const graphData = {graph_json};
+            let allNodes = graphData.nodes;
+            
+            function renderNodes(nodes) {{
+                const container = document.getElementById('nodesContainer');
+                let html = '';
+                
+                nodes.forEach(node => {{
+                    const typeClass = node.type === 'file' ? 'type-file' : 
+                                     node.type === 'function' ? 'type-function' : 
+                                     node.type === 'class' ? 'type-class' : 'type-unknown';
+                    
+                    html += `
+                        <div class="node-item ${{node.type}}">
+                            <span class="node-type ${{typeClass}}">${{node.type}}</span>
+                            <span class="node-label">${{node.label}}</span>
+                            ${{node.file_path ? `<div class="node-path">📁 ${{node.file_path}}</div>` : ''}}
+                            ${{node.line_start ? `<div class="node-lines">📍 Lines ${{node.line_start}}-${{node.line_end}}</div>` : ''}}
+                        </div>
+                    `;
+                }});
+                
+                container.innerHTML = html || '<p style="color: #888;">No nodes found</p>';
+            }}
+            
+            function filterNodes() {{
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                const filtered = allNodes.filter(node => 
+                    node.label.toLowerCase().includes(searchTerm) ||
+                    (node.file_path && node.file_path.toLowerCase().includes(searchTerm))
+                );
+                renderNodes(filtered);
+            }}
+            
+            function clearFilter() {{
+                document.getElementById('searchInput').value = '';
+                renderNodes(allNodes);
+            }}
+            
+            // Initial render
+            renderNodes(allNodes);
+        </script>
+    </body>
+    </html>
+    """
+    return html
     
     html = f"""
     <!DOCTYPE html>

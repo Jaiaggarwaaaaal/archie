@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Archie Graph - Simple View</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 { color: #4fc3f7; }
+        .stats {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .node-list {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .node-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #3a3a3a;
+            border-radius: 4px;
+            border-left: 4px solid #4fc3f7;
+        }
+        .node-item.function { border-left-color: #ffb74d; }
+        .node-item.class { border-left-color: #ba68c8; }
+        .node-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+        .type-file { background: #4fc3f7; }
+        .type-function { background: #ffb74d; }
+        .type-class { background: #ba68c8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Archie Code Graph</h1>
+        
+        <div class="stats" id="stats">
+            <h2>Loading statistics...</h2>
+        </div>
+        
+        <div class="node-list" id="nodes">
+            <h2>Loading nodes...</h2>
+        </div>
+    </div>
+    
+    <script>
+        // Fetch graph data
+        fetch('http://localhost:8000/graph/visualize?max_nodes=100')
+            .then(r => r.json())
+            .then(data => {
+                // Show stats
+                document.getElementById('stats').innerHTML = `
+                    <h2>📊 Graph Statistics</h2>
+                    <p><strong>Total Nodes:</strong> ${data.stats.total_nodes}</p>
+                    <p><strong>Total Edges:</strong> ${data.stats.total_edges}</p>
+                    <p><strong>Files:</strong> ${data.stats.files}</p>
+                    <p><strong>Functions:</strong> ${data.stats.functions}</p>
+                    <p><strong>Classes:</strong> ${data.stats.classes}</p>
+                    <p><em>Showing first 100 nodes below</em></p>
+                `;
+                
+                // Show nodes
+                let html = '<h2>📦 Nodes (First 100)</h2>';
+                data.nodes.forEach(node => {
+                    const typeClass = node.type === 'file' ? 'type-file' : 
+                                     node.type === 'function' ? 'type-function' : 
+                                     node.type === 'class' ? 'type-class' : 'type-file';
+                    
+                    html += `
+                        <div class="node-item ${node.type}">
+                            <span class="node-type ${typeClass}">${node.type}</span>
+                            <strong>${node.label}</strong>
+                            ${node.file_path ? `<br><small>${node.file_path}</small>` : ''}
+                            ${node.line_start ? `<br><small>Lines ${node.line_start}-${node.line_end}</small>` : ''}
+                        </div>
+                    `;
+                });
+                document.getElementById('nodes').innerHTML = html;
+            })
+            .catch(err => {
+                document.getElementById('stats').innerHTML = `<h2>❌ Error loading graph</h2><p>${err}</p>`;
+            });
+    </script>
+</body>
+</html>
