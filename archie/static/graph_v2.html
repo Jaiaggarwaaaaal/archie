@@ -22,9 +22,8 @@
             height: 100vh;
         }
         
-        /* Left Sidebar */
         .sidebar {
-            width: 300px;
+            width: 320px;
             background: #151b3d;
             border-right: 1px solid #2a3254;
             display: flex;
@@ -48,6 +47,56 @@
             color: #888;
         }
         
+        .controls {
+            padding: 15px 20px;
+            border-bottom: 1px solid #2a3254;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: block;
+            font-weight: 600;
+        }
+        
+        .control-input {
+            width: 100%;
+            padding: 8px 12px;
+            background: #0a0e27;
+            border: 1px solid #2a3254;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 13px;
+        }
+        
+        .control-input:focus {
+            outline: none;
+            border-color: #4fc3f7;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 10px;
+            background: #4fc3f7;
+            border: none;
+            border-radius: 6px;
+            color: #000;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: #29b6f6;
+        }
+        
         .stats {
             padding: 15px 20px;
             border-bottom: 1px solid #2a3254;
@@ -56,8 +105,8 @@
         .stat-item {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            font-size: 13px;
+            padding: 6px 0;
+            font-size: 12px;
         }
         
         .stat-label {
@@ -75,7 +124,7 @@
         }
         
         .filter-title {
-            font-size: 12px;
+            font-size: 11px;
             color: #888;
             text-transform: uppercase;
             margin-bottom: 10px;
@@ -88,10 +137,16 @@
             padding: 8px 0;
             cursor: pointer;
             font-size: 13px;
+            transition: all 0.2s;
         }
         
         .filter-item:hover {
             color: #4fc3f7;
+        }
+        
+        .filter-item.active {
+            color: #4fc3f7;
+            font-weight: 600;
         }
         
         .filter-color {
@@ -99,26 +154,6 @@
             height: 12px;
             border-radius: 50%;
             margin-right: 10px;
-        }
-        
-        .search-box {
-            padding: 15px 20px;
-            border-bottom: 1px solid #2a3254;
-        }
-        
-        .search-box input {
-            width: 100%;
-            padding: 10px;
-            background: #0a0e27;
-            border: 1px solid #2a3254;
-            border-radius: 6px;
-            color: #fff;
-            font-size: 13px;
-        }
-        
-        .search-box input:focus {
-            outline: none;
-            border-color: #4fc3f7;
         }
         
         .node-details {
@@ -169,7 +204,6 @@
             margin-bottom: 5px;
         }
         
-        /* Graph Canvas */
         .graph-container {
             flex: 1;
             position: relative;
@@ -188,7 +222,7 @@
             background: rgba(21, 27, 61, 0.95);
             border: 1px solid #2a3254;
             border-radius: 8px;
-            padding: 15px;
+            padding: 10px;
         }
         
         .control-btn {
@@ -200,7 +234,7 @@
             border-radius: 6px;
             color: #fff;
             cursor: pointer;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-size: 18px;
             transition: all 0.2s;
         }
@@ -241,23 +275,65 @@
             padding: 40px 20px;
         }
         
-        .empty-state-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-            opacity: 0.5;
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(21, 27, 61, 0.95);
+            border: 1px solid #2a3254;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 11px;
+        }
+        
+        .legend-title {
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        
+        .legend-color {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Left Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
                 <h1>🤖 Archie Graph</h1>
                 <p>Code Knowledge Graph</p>
             </div>
             
+            <div class="controls">
+                <div class="control-group">
+                    <label class="control-label">Max Nodes</label>
+                    <input type="number" id="maxNodes" class="control-input" value="200" min="10" max="2000" step="50">
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">Search Files</label>
+                    <input type="text" id="fileFilter" class="control-input" placeholder="e.g., models, api, utils">
+                </div>
+                
+                <button class="btn" onclick="reloadGraph()">🔄 Reload Graph</button>
+            </div>
+            
             <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Showing</span>
+                    <span class="stat-value" id="showingNodes">-</span>
+                </div>
                 <div class="stat-item">
                     <span class="stat-label">Total Nodes</span>
                     <span class="stat-value" id="totalNodes">-</span>
@@ -281,38 +357,33 @@
             </div>
             
             <div class="filters">
-                <div class="filter-title">Entity Types</div>
-                <div class="filter-item" onclick="filterByType('all')">
+                <div class="filter-title">Filter by Type</div>
+                <div class="filter-item active" data-type="all" onclick="filterByType('all', this)">
                     <div class="filter-color" style="background: #fff;"></div>
-                    <span>All (<span id="countAll">-</span>)</span>
+                    <span>All Types</span>
                 </div>
-                <div class="filter-item" onclick="filterByType('file')">
+                <div class="filter-item" data-type="file" onclick="filterByType('file', this)">
                     <div class="filter-color" style="background: #4fc3f7;"></div>
-                    <span>Files (<span id="countFiles">-</span>)</span>
+                    <span>Files Only</span>
                 </div>
-                <div class="filter-item" onclick="filterByType('function')">
+                <div class="filter-item" data-type="function" onclick="filterByType('function', this)">
                     <div class="filter-color" style="background: #ffb74d;"></div>
-                    <span>Functions (<span id="countFunctions">-</span>)</span>
+                    <span>Functions Only</span>
                 </div>
-                <div class="filter-item" onclick="filterByType('class')">
+                <div class="filter-item" data-type="class" onclick="filterByType('class', this)">
                     <div class="filter-color" style="background: #ba68c8;"></div>
-                    <span>Classes (<span id="countClasses">-</span>)</span>
+                    <span>Classes Only</span>
                 </div>
-            </div>
-            
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Search nodes..." onkeyup="searchNodes()">
             </div>
             
             <div class="node-details" id="nodeDetails">
                 <div class="empty-state">
-                    <div class="empty-state-icon">👆</div>
+                    <div style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;">👆</div>
                     <p>Click a node to see details</p>
                 </div>
             </div>
         </div>
         
-        <!-- Graph Canvas -->
         <div class="graph-container">
             <div id="graph"></div>
             
@@ -320,6 +391,22 @@
                 <button class="control-btn" onclick="zoomIn()" title="Zoom In">+</button>
                 <button class="control-btn" onclick="zoomOut()" title="Zoom Out">−</button>
                 <button class="control-btn" onclick="resetView()" title="Reset View">⟲</button>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-title">Node Types</div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4fc3f7;"></div>
+                    <span>Files</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffb74d;"></div>
+                    <span>Functions</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ba68c8;"></div>
+                    <span>Classes</span>
+                </div>
             </div>
             
             <div class="loading" id="loading">
@@ -335,8 +422,8 @@
         let graphInstance = null;
         let allNodes = [];
         let allEdges = [];
+        let currentFilter = 'all';
         
-        // Color mapping
         const colors = {
             'file': '#4fc3f7',
             'function': '#ffb74d',
@@ -344,120 +431,134 @@
             'unknown': '#666666'
         };
         
-        // Load graph data
         async function loadGraph() {
+            const maxNodes = document.getElementById('maxNodes').value || 200;
+            const fileFilter = document.getElementById('fileFilter').value.toLowerCase().trim();
+            
             try {
-                const response = await fetch('/graph/visualize?max_nodes=1000');
+                document.getElementById('loading').style.display = 'block';
+                
+                const url = `/graph/visualize?max_nodes=${maxNodes}`;
+                
+                const response = await fetch(url);
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    throw new Error(`HTTP ${response.status}`);
                 }
                 
                 graphData = await response.json();
-                
                 allNodes = graphData.nodes;
                 allEdges = graphData.edges;
                 
+                // Apply file filter if provided
+                const fileFilter = document.getElementById('fileFilter').value.toLowerCase().trim();
+                if (fileFilter) {
+                    allNodes = allNodes.filter(n => 
+                        n.label.toLowerCase().includes(fileFilter) ||
+                        (n.file_path && n.file_path.toLowerCase().includes(fileFilter))
+                    );
+                }
+                
                 // Update stats
+                document.getElementById('showingNodes').textContent = allNodes.length;
                 document.getElementById('totalNodes').textContent = graphData.stats.total_nodes.toLocaleString();
                 document.getElementById('totalEdges').textContent = graphData.stats.total_edges.toLocaleString();
                 document.getElementById('totalFiles').textContent = graphData.stats.files.toLocaleString();
                 document.getElementById('totalFunctions').textContent = graphData.stats.functions.toLocaleString();
                 document.getElementById('totalClasses').textContent = graphData.stats.classes.toLocaleString();
                 
-                // Update filter counts
-                document.getElementById('countAll').textContent = allNodes.length;
-                document.getElementById('countFiles').textContent = allNodes.filter(n => n.type === 'file').length;
-                document.getElementById('countFunctions').textContent = allNodes.filter(n => n.type === 'function').length;
-                document.getElementById('countClasses').textContent = allNodes.filter(n => n.type === 'class').length;
-                
-                // Render graph
-                renderGraph(graphData);
-                
-                // Hide loading
+                renderGraph();
                 document.getElementById('loading').style.display = 'none';
                 
-                console.log(`✅ Graph loaded: ${allNodes.length} nodes, ${allEdges.length} edges`);
-                
             } catch (error) {
-                console.error('Error loading graph:', error);
+                console.error('Error:', error);
                 document.getElementById('loading').innerHTML = `
-                    <p style="color: #ef4444; margin-bottom: 10px;">Error loading graph</p>
-                    <p style="color: #888; font-size: 12px;">${error.message}</p>
+                    <p style="color: #ef4444;">Error loading graph</p>
+                    <p style="color: #888; font-size: 12px; margin-top: 10px;">${error.message}</p>
                 `;
             }
         }
         
-        function renderGraph(data) {
+        function renderGraph() {
             const elem = document.getElementById('graph');
             
-            // Transform edges to have source/target as node IDs (not objects)
+            // Filter nodes based on current filter
+            let nodes = allNodes;
+            if (currentFilter !== 'all') {
+                nodes = allNodes.filter(n => n.type === currentFilter);
+            }
+            
+            const nodeIds = new Set(nodes.map(n => n.id));
+            const edges = allEdges.filter(e => 
+                nodeIds.has(e.source) && nodeIds.has(e.target)
+            );
+            
             const graphData = {
-                nodes: data.nodes,
-                links: data.edges.map(e => ({
+                nodes: nodes,
+                links: edges.map(e => ({
                     source: e.source,
                     target: e.target,
                     type: e.type
                 }))
             };
             
+            if (graphInstance) {
+                graphInstance.graphData(graphData);
+                return;
+            }
+            
             graphInstance = ForceGraph()(elem)
                 .graphData(graphData)
                 .nodeLabel(node => {
                     const name = node.label.split('/').pop() || node.label;
-                    return `<div style="background: rgba(0,0,0,0.9); padding: 8px; border-radius: 4px; font-size: 12px;">
-                        <strong>${name}</strong><br/>
+                    return `<div style="background: rgba(0,0,0,0.9); padding: 8px; border-radius: 4px; font-size: 12px; max-width: 300px;">
+                        <strong style="color: ${colors[node.type]};">${name}</strong><br/>
                         <span style="color: #888;">Type: ${node.type}</span>
                     </div>`;
                 })
                 .nodeColor(node => colors[node.type] || colors['unknown'])
+                .nodeRelSize(4)
                 .nodeVal(node => {
-                    if (node.type === 'file') return 10;
-                    if (node.type === 'class') return 7;
-                    return 4;
+                    if (node.type === 'file') return 12;
+                    if (node.type === 'class') return 8;
+                    return 5;
                 })
-                .nodeRelSize(6)
                 .linkColor(link => {
-                    if (link.type === 'calls') return 'rgba(79, 195, 247, 0.4)';
-                    if (link.type === 'imports') return 'rgba(255, 183, 77, 0.4)';
-                    return 'rgba(255, 255, 255, 0.2)';
+                    if (link.type === 'calls') return 'rgba(79, 195, 247, 0.3)';
+                    if (link.type === 'imports') return 'rgba(255, 183, 77, 0.3)';
+                    return 'rgba(255, 255, 255, 0.15)';
                 })
-                .linkWidth(link => link.type === 'calls' ? 2 : 1)
-                .linkDirectionalParticles(link => link.type === 'calls' ? 2 : 0)
-                .linkDirectionalParticleWidth(2)
-                .linkDirectionalParticleSpeed(0.003)
-                .linkDirectionalArrowLength(3)
+                .linkWidth(1)
+                .linkDirectionalArrowLength(4)
                 .linkDirectionalArrowRelPos(1)
+                .linkDirectionalParticles(link => link.type === 'calls' ? 1 : 0)
+                .linkDirectionalParticleWidth(2)
+                .linkDirectionalParticleSpeed(0.002)
                 .onNodeClick(showNodeDetails)
                 .onNodeHover(node => {
                     elem.style.cursor = node ? 'pointer' : 'default';
                 })
-                .d3Force('charge').strength(-200)
-                .d3Force('link').distance(80)
-                .d3Force('center').strength(0.1)
-                .cooldownTicks(100)
-                .onEngineStop(() => graphInstance.zoomToFit(400, 50));
+                .cooldownTicks(200)
+                .onEngineStop(() => {
+                    setTimeout(() => graphInstance.zoomToFit(400, 80), 100);
+                });
+            
+            // Configure forces separately
+            graphInstance.d3Force('charge').strength(-300);
+            graphInstance.d3Force('link').distance(100);
+            graphInstance.d3Force('center').strength(0.05);
         }
         
         function showNodeDetails(node) {
             const details = document.getElementById('nodeDetails');
+            const displayName = node.label.split('/').pop() || node.label;
             
-            // Get connections
             const outgoing = allEdges.filter(e => e.source === node.id || (e.source.id && e.source.id === node.id));
             const incoming = allEdges.filter(e => e.target === node.id || (e.target.id && e.target.id === node.id));
-            
-            // Get unique connection types
-            const connectionTypes = {};
-            [...outgoing, ...incoming].forEach(e => {
-                connectionTypes[e.type] = (connectionTypes[e.type] || 0) + 1;
-            });
-            
-            // Shorten label for display
-            const displayName = node.label.split('/').pop() || node.label;
             
             details.innerHTML = `
                 <div class="detail-section">
                     <div class="detail-title">Name</div>
-                    <div class="detail-content" style="font-weight: 600; color: ${colors[node.type]};">
+                    <div class="detail-content" style="font-weight: 600; color: ${colors[node.type]}; font-size: 14px;">
                         ${displayName}
                     </div>
                 </div>
@@ -473,108 +574,54 @@
                 
                 ${node.file_path ? `
                 <div class="detail-section">
-                    <div class="detail-title">File Path</div>
-                    <div class="detail-content" style="font-size: 11px; color: #888;">
+                    <div class="detail-title">Path</div>
+                    <div class="detail-content" style="font-size: 11px; color: #888; word-break: break-all;">
                         ${node.file_path}
                     </div>
-                </div>
-                ` : ''}
-                
-                ${node.line_start ? `
-                <div class="detail-section">
-                    <div class="detail-title">Lines</div>
-                    <div class="detail-content">${node.line_start} - ${node.line_end}</div>
                 </div>
                 ` : ''}
                 
                 <div class="detail-section">
                     <div class="detail-title">Connections</div>
                     <div class="detail-content">
-                        <div style="margin-bottom: 8px;">
-                            <strong>${outgoing.length + incoming.length}</strong> total edges
-                        </div>
-                        ${Object.entries(connectionTypes).map(([type, count]) => `
-                            <div class="detail-badge">${type}: ${count}</div>
-                        `).join('')}
+                        <div class="detail-badge">Outgoing: ${outgoing.length}</div>
+                        <div class="detail-badge">Incoming: ${incoming.length}</div>
                     </div>
                 </div>
-                
-                ${outgoing.length > 0 ? `
-                <div class="detail-section">
-                    <div class="detail-title">Outgoing (${outgoing.length})</div>
-                    <div class="detail-content" style="max-height: 150px; overflow-y: auto;">
-                        ${outgoing.slice(0, 10).map(e => {
-                            const targetId = e.target.id || e.target;
-                            const targetNode = allNodes.find(n => n.id === targetId);
-                            const targetName = targetNode ? (targetNode.label.split('/').pop() || targetNode.label) : targetId;
-                            return `<div style="font-size: 11px; padding: 4px 0; border-bottom: 1px solid #2a3254;">
-                                <span style="color: #888;">${e.type}</span> → ${targetName}
-                            </div>`;
-                        }).join('')}
-                        ${outgoing.length > 10 ? `<div style="color: #888; font-size: 11px; padding: 4px 0;">...and ${outgoing.length - 10} more</div>` : ''}
-                    </div>
-                </div>
-                ` : ''}
-                
-                ${incoming.length > 0 ? `
-                <div class="detail-section">
-                    <div class="detail-title">Incoming (${incoming.length})</div>
-                    <div class="detail-content" style="max-height: 150px; overflow-y: auto;">
-                        ${incoming.slice(0, 10).map(e => {
-                            const sourceId = e.source.id || e.source;
-                            const sourceNode = allNodes.find(n => n.id === sourceId);
-                            const sourceName = sourceNode ? (sourceNode.label.split('/').pop() || sourceNode.label) : sourceId;
-                            return `<div style="font-size: 11px; padding: 4px 0; border-bottom: 1px solid #2a3254;">
-                                ${sourceName} → <span style="color: #888;">${e.type}</span>
-                            </div>`;
-                        }).join('')}
-                        ${incoming.length > 10 ? `<div style="color: #888; font-size: 11px; padding: 4px 0;">...and ${incoming.length - 10} more</div>` : ''}
-                    </div>
-                </div>
-                ` : ''}
             `;
         }
         
-        function filterByType(type) {
-            if (type === 'all') {
-                graphInstance.graphData({ nodes: allNodes, edges: allEdges, stats: graphData.stats });
-            } else {
-                const filtered = allNodes.filter(n => n.type === type);
-                const nodeIds = new Set(filtered.map(n => n.id));
-                const filteredEdges = allEdges.filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
-                graphInstance.graphData({ nodes: filtered, edges: filteredEdges, stats: graphData.stats });
-            }
-        }
-        
-        function searchNodes() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            if (!query) {
-                graphInstance.graphData({ nodes: allNodes, edges: allEdges, stats: graphData.stats });
-                return;
+        function filterByType(type, element) {
+            currentFilter = type;
+            
+            // Update active state
+            document.querySelectorAll('.filter-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            if (element) {
+                element.classList.add('active');
             }
             
-            const filtered = allNodes.filter(n => 
-                n.label.toLowerCase().includes(query) ||
-                (n.file_path && n.file_path.toLowerCase().includes(query))
-            );
-            const nodeIds = new Set(filtered.map(n => n.id));
-            const filteredEdges = allEdges.filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
-            graphInstance.graphData({ nodes: filtered, edges: filteredEdges, stats: graphData.stats });
+            renderGraph();
+        }
+        
+        function reloadGraph() {
+            loadGraph();
         }
         
         function zoomIn() {
-            graphInstance.zoom(graphInstance.zoom() * 1.2);
+            if (graphInstance) graphInstance.zoom(graphInstance.zoom() * 1.3);
         }
         
         function zoomOut() {
-            graphInstance.zoom(graphInstance.zoom() / 1.2);
+            if (graphInstance) graphInstance.zoom(graphInstance.zoom() / 1.3);
         }
         
         function resetView() {
-            graphInstance.zoomToFit(400);
+            if (graphInstance) graphInstance.zoomToFit(400, 80);
         }
         
-        // Load on page load
+        // Load on start
         loadGraph();
     </script>
 </body>

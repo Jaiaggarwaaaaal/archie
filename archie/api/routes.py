@@ -411,7 +411,16 @@ async def get_hotspots(top_n: int = 10) -> Dict[str, Any]:
 
 @router.get("/graph/ui", response_class=HTMLResponse)
 async def graph_ui():
-    """Proper graph UI with sidebar and controls."""
+    """Improved graph UI with better controls and layout."""
+    from pathlib import Path
+    html_path = Path(__file__).parent.parent / "static" / "graph_v2.html"
+    with open(html_path, 'r') as f:
+        return f.read()
+
+
+@router.get("/graph/ui/old", response_class=HTMLResponse)
+async def graph_ui_old():
+    """Original graph UI (backup)."""
     from pathlib import Path
     html_path = Path(__file__).parent.parent / "static" / "graph.html"
     with open(html_path, 'r') as f:
